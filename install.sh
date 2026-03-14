@@ -11,6 +11,10 @@ fail() {
   exit 1
 }
 
+warn() {
+  echo "Warning: $1" >&2
+}
+
 resolve_patch_file() {
   local script_path=""
   set +u
@@ -49,18 +53,19 @@ if [[ ! -f "$PATCH_FILE" ]]; then
   fail "Patch file not found at $PATCH_FILE."
 fi
 
-if [[ "$(git rev-parse HEAD)" != "$EXPECTED_COMMIT" ]]; then
-  fail "This installer is pinned to Agent0 commit $EXPECTED_COMMIT."
-fi
-
-if ! git diff --quiet || ! git diff --cached --quiet || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
-  fail "The Agent0 checkout must be clean before applying this patch."
+current_commit="$(git rev-parse HEAD)"
+if [[ "$current_commit" != "$EXPECTED_COMMIT" ]]; then
+  warn "This patch was built against Agent0 commit $EXPECTED_COMMIT."
+  warn "Current checkout is $current_commit."
+  warn "Continuing anyway because the patch may still apply cleanly."
 fi
 
 if git apply --reverse --check "$PATCH_FILE" >/dev/null 2>&1; then
   echo "Patch already applied. Nothing to do."
 else
-  git apply --check "$PATCH_FILE" || fail "Patch cannot be applied cleanly."
+  if ! git apply --check "$PATCH_FILE"; then
+    fail "Patch cannot be applied cleanly to this checkout. Try the pinned Agent0 commit or a clean checkout."
+  fi
   git apply "$PATCH_FILE"
   echo "Patch applied successfully."
 fi

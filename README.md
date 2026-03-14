@@ -10,42 +10,20 @@ This repo is meant for people who want the Codex provider workflow on a fresh st
 
 ## Installation
 
-This repository is a patch source for an existing Agent0 checkout.
-
-It is not a standalone app.
-
-Important:
-
-- Work from the root of the real Agent0 repository
-- Do not run this repo from `usr/workdir`
-- Do not treat this repo as a replacement for Agent0 itself
-- Apply `agent0-codex.patch` to Agent0
-
-### Correct install flow
-
-1. Get a clean Agent0 checkout.
-2. Make sure the checkout is at the supported commit:
-   - `fa65fa3ddc12b46efed05bd7884a5aa64209901e`
-3. Download this repo or at minimum download `agent0-codex.patch`.
-4. From the root of the Agent0 repo, apply the patch:
-
-```bash
-git apply --check /path/to/agent0-codex.patch
-git apply /path/to/agent0-codex.patch
-```
-
-5. Build and run Agent0 normally.
-6. Open `Settings -> External Services -> Codex Proxy`.
-7. Sign in with OpenAI or import `~/.codex/auth.json`.
-8. Apply the Codex models.
-
-### One-line installer
-
-If you want an automated install, run this from the root of the Agent0 checkout:
+Run this from the root of an existing Agent0 checkout:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Nunezchef/agent0-codex-patch/main/install.sh | bash
 ```
+
+That installer downloads the patch, applies it to the current Agent0 repo, and prints the next Docker steps.
+
+Important:
+
+- This repo patches Agent0. It is not a standalone app.
+- Run the installer from the real Agent0 root.
+- Do not clone this repo into `usr/workdir` and run it there.
+- Best compatibility is with Agent0 commit `fa65fa3ddc12b46efed05bd7884a5aa64209901e`, but the installer will try the patch on nearby revisions too.
 
 ### For AI agents
 
@@ -53,8 +31,7 @@ If an AI agent is installing this patch, it should infer these rules from this R
 
 - patch the current Agent0 repo
 - stay in the Agent0 root
-- verify the expected commit
-- use `agent0-codex.patch`
+- run `install.sh` or apply `agent0-codex.patch`
 - avoid running the patch repo as a standalone project
 
 ## Supported Models
@@ -92,19 +69,17 @@ This patch ports the Codex provider idea into the stable Agent0 architecture, re
 ## Compatibility
 
 - Pinned Agent0 commit: `fa65fa3ddc12b46efed05bd7884a5aa64209901e`
-- The installer intentionally fails on other revisions
+- The patch is built against that revision, but the installer now attempts a clean apply on nearby checkouts before failing
 
-## Install Flow
+## After Install
 
-1. Clone or download Agent0 at the pinned commit.
-2. Run the one-line installer from the Agent0 root.
-3. Build the local image:
+1. Build the local image:
 
 ```bash
 docker build -f DockerfileLocal -t agent-zero-local --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) .
 ```
 
-4. Run the image or update your compose stack to use `agent-zero-local:latest`.
-5. Open Settings -> External Services -> Codex Proxy.
-6. Sign in with OpenAI or import `~/.codex/auth.json`.
-7. Apply the Codex models to Agent0.
+2. Run the image or update your compose stack to use `agent-zero-local:latest`.
+3. Open Settings -> External Services -> Codex Proxy.
+4. Sign in with OpenAI or import `~/.codex/auth.json`.
+5. Apply the Codex models to Agent0.
