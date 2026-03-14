@@ -8,6 +8,55 @@ It adds a local OpenAI-compatible proxy inside Agent0, a Settings -> External Se
 
 This repo is meant for people who want the Codex provider workflow on a fresh stable Agent0 checkout without depending on the newer dev-branch plugin system.
 
+## Installation
+
+This repository is a patch source for an existing Agent0 checkout.
+
+It is not a standalone app.
+
+Important:
+
+- Work from the root of the real Agent0 repository
+- Do not run this repo from `usr/workdir`
+- Do not treat this repo as a replacement for Agent0 itself
+- Apply `agent0-codex.patch` to Agent0
+
+### Correct install flow
+
+1. Get a clean Agent0 checkout.
+2. Make sure the checkout is at the supported commit:
+   - `fa65fa3ddc12b46efed05bd7884a5aa64209901e`
+3. Download this repo or at minimum download `agent0-codex.patch`.
+4. From the root of the Agent0 repo, apply the patch:
+
+```bash
+git apply --check /path/to/agent0-codex.patch
+git apply /path/to/agent0-codex.patch
+```
+
+5. Build and run Agent0 normally.
+6. Open `Settings -> External Services -> Codex Proxy`.
+7. Sign in with OpenAI or import `~/.codex/auth.json`.
+8. Apply the Codex models.
+
+### One-line installer
+
+If you want an automated install, run this from the root of the Agent0 checkout:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Nunezchef/agent0-codex-patch/main/install.sh | bash
+```
+
+### For AI agents
+
+If an AI agent is installing this patch, it should infer these rules from this README:
+
+- patch the current Agent0 repo
+- stay in the Agent0 root
+- verify the expected commit
+- use `agent0-codex.patch`
+- avoid running the patch repo as a standalone project
+
 ## Supported Models
 
 - `gpt-5.3-codex`
