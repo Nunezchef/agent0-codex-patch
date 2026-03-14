@@ -4,6 +4,8 @@ Native Codex proxy integration for stable Agent0, packaged as a lightweight inst
 
 It adds a local OpenAI-compatible proxy inside Agent0, a Settings -> External Services -> Codex Proxy panel, OAuth device login plus `~/.codex/auth.json` import, and auto-wiring for chat, utility, and browser models.
 
+This repo is meant for people who want the Codex provider workflow on a fresh stable Agent0 checkout without depending on the newer dev-branch plugin system.
+
 ## Supported Models
 
 - `gpt-5.3-codex`
@@ -36,6 +38,13 @@ curl -fsSL https://raw.githubusercontent.com/Nunezchef/agent0-codex-patch/main/i
 - Settings -> External Services -> Codex Proxy UI
 - Auto-start proxy on each conversation
 - Chat, utility, and browser model wiring through the proxy
+
+## Credits
+
+- Original Codex provider plugin concept and implementation: [protolabs42/codex-provider](https://github.com/protolabs42/codex-provider)
+- Agent0 upstream project: [agent0ai/agent-zero](https://github.com/agent0ai/agent-zero)
+
+This patch ports the Codex provider idea into the stable Agent0 architecture, replacing the missing dev-branch plugin runtime with native settings, APIs, and extension hooks.
 
 ## Compatibility
 
