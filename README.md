@@ -8,6 +8,24 @@ It adds a local OpenAI-compatible proxy inside Agent0, a Settings -> External Se
 
 This repo is meant for people who want the Codex provider workflow on a fresh stable Agent0 checkout without depending on the newer dev-branch plugin system.
 
+## Install with Agent Zero
+
+Copy and paste this prompt into Agent Zero:
+
+```text
+Install the Codex patch from https://github.com/Nunezchef/agent0-codex-patch into this current Agent0 checkout.
+
+Read the repository README and follow it exactly.
+
+Important:
+- This is a patch for the current Agent0 repo, not a standalone project.
+- Work only from the root of the current Agent0 repository.
+- Do not clone the patch repo into usr/workdir and run it from there.
+- Use the recommended installer command from the README.
+- After installation, verify that the Codex settings UI, backend API files, and codex_proxy model provider changes are present.
+- If anything fails, stop and report the exact command and exact error.
+```
+
 ## Installation
 
 Run this from the root of an existing Agent0 checkout:
