@@ -1,5 +1,7 @@
 # Agent0 Codex Patch
 
+![Agent0 Codex Patch banner](./banner.png)
+
 Native Codex proxy integration for stable Agent0, packaged as a lightweight installer patch.
 
 It adds a local OpenAI-compatible proxy inside Agent0, a Settings -> External Services -> Codex Proxy panel, OAuth device login plus `~/.codex/auth.json` import, and auto-wiring for chat, utility, and browser models.
