@@ -1,81 +1,58 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-EXPECTED_COMMIT="fa65fa3ddc12b46efed05bd7884a5aa64209901e"
-PATCH_URL="https://raw.githubusercontent.com/Nunezchef/agent0-codex-patch/main/agent0-codex.patch"
-SCRIPT_DIR=""
-PATCH_FILE=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-fail() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
-warn() {
-  echo "Warning: $1" >&2
-}
-
-resolve_patch_file() {
-  local script_path=""
-  set +u
-  script_path="${BASH_SOURCE[0]:-}"
-  set -u
-
-  if [[ -n "$script_path" && -f "$script_path" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "$script_path")" && pwd)"
-    PATCH_FILE="$SCRIPT_DIR/agent0-codex.patch"
-  fi
-
-  if [[ -n "$PATCH_FILE" && -f "$PATCH_FILE" ]]; then
-    return
-  fi
-
-  local temp_dir
-  temp_dir="$(mktemp -d)"
-  PATCH_FILE="$temp_dir/agent0-codex.patch"
-
-  if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$PATCH_URL" -o "$PATCH_FILE" || fail "Failed to download patch file."
-  elif command -v wget >/dev/null 2>&1; then
-    wget -qO "$PATCH_FILE" "$PATCH_URL" || fail "Failed to download patch file."
-  else
-    fail "Neither curl nor wget is available to download the patch file."
-  fi
-}
-
-resolve_patch_file
-
-if [[ ! -d .git || ! -f run_ui.py || ! -d python || ! -d webui ]]; then
-  fail "Run this from the root of a fresh Agent0 checkout."
-fi
-
-if [[ ! -f "$PATCH_FILE" ]]; then
-  fail "Patch file not found at $PATCH_FILE."
-fi
-
-current_commit="$(git rev-parse HEAD)"
-if [[ "$current_commit" != "$EXPECTED_COMMIT" ]]; then
-  warn "This patch was built against Agent0 commit $EXPECTED_COMMIT."
-  warn "Current checkout is $current_commit."
-  warn "Continuing anyway because the patch may still apply cleanly."
-fi
-
-if git apply --reverse --check "$PATCH_FILE" >/dev/null 2>&1; then
-  echo "Patch already applied. Nothing to do."
+if [[ -n "${1:-}" ]]; then
+  A0_ROOT="$1"
+elif [[ -d "/a0/usr" && -d "/a0/webui" ]]; then
+  A0_ROOT="/a0"
+elif [[ -d "/git/agent-zero/usr" && -d "/git/agent-zero/webui" ]]; then
+  A0_ROOT="/git/agent-zero"
 else
-  if ! git apply --check "$PATCH_FILE"; then
-    fail "Patch cannot be applied cleanly to this checkout. Try the pinned Agent0 commit or a clean checkout."
-  fi
-  git apply "$PATCH_FILE"
-  echo "Patch applied successfully."
+  echo "Error: Cannot find Agent0 root. Pass it as first argument." >&2
+  exit 1
 fi
 
-cat <<'EOF'
+PLUGIN_NAME="codex-proxy"
+PLUGIN_DIR="$A0_ROOT/usr/plugins/$PLUGIN_NAME"
+SYMLINK="$A0_ROOT/plugins/$PLUGIN_NAME"
 
-Next steps:
-1. docker build -f DockerfileLocal -t agent-zero-local --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) .
-2. Run the local image or update your compose stack to use agent-zero-local:latest.
-3. Open Settings -> External Services -> Codex Proxy.
-4. Sign in with OpenAI or import ~/.codex/auth.json.
-5. Apply the Codex models to Agent0.
-EOF
+echo "=== Codex Proxy Installer ==="
+echo "Source: $SCRIPT_DIR"
+echo "Target: $PLUGIN_DIR"
+echo "Agent0: $A0_ROOT"
+if git -C "$SCRIPT_DIR" rev-parse --verify HEAD >/dev/null 2>&1; then
+  PLUGIN_COMMIT="$(git -C "$SCRIPT_DIR" rev-parse HEAD)"
+  echo "Plugin commit: $PLUGIN_COMMIT"
+else
+  PLUGIN_COMMIT="unknown"
+  echo "Plugin commit: unknown"
+fi
+echo
+
+mkdir -p "$PLUGIN_DIR"
+
+echo "[1/4] Copying plugin files..."
+cp -f "$SCRIPT_DIR/plugin.yaml" "$PLUGIN_DIR/"
+cp -f "$SCRIPT_DIR/README.md" "$PLUGIN_DIR/"
+cp -f "$SCRIPT_DIR/install.sh" "$PLUGIN_DIR/"
+cp -f "$SCRIPT_DIR/initialize.py" "$PLUGIN_DIR/"
+mkdir -p "$PLUGIN_DIR/runtime" "$PLUGIN_DIR/scripts"
+cp -rf "$SCRIPT_DIR/runtime/"* "$PLUGIN_DIR/runtime/"
+if [[ -f "$SCRIPT_DIR/scripts/install-into-agent0.sh" ]]; then
+  cp -f "$SCRIPT_DIR/scripts/install-into-agent0.sh" "$PLUGIN_DIR/scripts/"
+fi
+
+echo "[2/4] Running plugin initializer..."
+python3 "$PLUGIN_DIR/initialize.py" --a0-root "$A0_ROOT" --plugin-root "$PLUGIN_DIR"
+
+echo "[3/4] Enabling plugin..."
+touch "$PLUGIN_DIR/.toggle-1"
+printf '%s\n' "$PLUGIN_COMMIT" > "$PLUGIN_DIR/.installed-from-commit"
+
+echo "[4/4] Creating plugin symlink..."
+mkdir -p "$A0_ROOT/plugins"
+ln -sfn "$PLUGIN_DIR" "$SYMLINK"
+
+echo "Restart Agent0 to load Codex Proxy changes."
