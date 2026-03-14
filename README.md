@@ -88,16 +88,3 @@ This patch ports the Codex provider idea into the stable Agent0 architecture, re
 
 - Pinned Agent0 commit: `fa65fa3ddc12b46efed05bd7884a5aa64209901e`
 - The patch is built against that revision, but the installer now attempts a clean apply on nearby checkouts before failing
-
-## After Install
-
-1. Build the local image:
-
-```bash
-docker build -f DockerfileLocal -t agent-zero-local --build-arg CACHE_DATE=$(date +%Y-%m-%d:%H:%M:%S) .
-```
-
-2. Run the image or update your compose stack to use `agent-zero-local:latest`.
-3. Open Settings -> External Services -> Codex Proxy.
-4. Sign in with OpenAI or import `~/.codex/auth.json`.
-5. Apply the Codex models to Agent0.
