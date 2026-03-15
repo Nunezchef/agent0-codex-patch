@@ -176,6 +176,29 @@ const model = {
     }
   },
 
+  async stopProxy() {
+    this.applying = true;
+    this.pairingError = "";
+    try {
+      const resp = await API.callJsonApi("codex_configure", { action: "stop" });
+      if (!resp.ok) throw new Error(resp.error || "Stop failed");
+      
+      const freshSettings = await API.callJsonApi("settings_get", null);
+      if (freshSettings?.settings && window.Alpine?.store("settings")) {
+        const settingsStore = window.Alpine.store("settings");
+        settingsStore.settings = freshSettings.settings;
+        settingsStore.additional = freshSettings.additional || settingsStore.additional;
+      }
+      this.proxyRunning = false;
+      await this.refresh();
+    } catch (error) {
+      console.error("Failed to stop Codex proxy", error);
+      this.pairingError = error.message || "Stop failed";
+    } finally {
+      this.applying = false;
+    }
+  },
+
   async disconnect() {
     this.loading = true;
     this.pairingError = "";

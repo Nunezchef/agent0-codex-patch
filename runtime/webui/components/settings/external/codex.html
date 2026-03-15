@@ -130,6 +130,9 @@
             <button class="btn btn-ok" @click="$store.codexProvider.applyToAgent()" :disabled="!$store.codexProvider.connected || $store.codexProvider.applying">
               <span x-text="$store.codexProvider.applying ? 'Applying...' : 'Apply to Agent Zero'"></span>
             </button>
+            <button class="btn btn-warning" @click="$store.codexProvider.stopProxy()" :disabled="!$store.codexProvider.proxyRunning || $store.codexProvider.applying">
+              Stop Proxy
+            </button>
             <button class="btn btn-field" @click="$store.codexProvider.refresh()" :disabled="$store.codexProvider.loading">
               Refresh Status
             </button>

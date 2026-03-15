@@ -11,6 +11,8 @@ class CodexConfigure(ApiHandler):
             return await self._apply(input)
         if action == "disconnect":
             return await self._disconnect()
+        if action == "stop":
+            return await self._stop()
         if action == "get_models":
             return {"ok": True, "models": codex_provider.get_supported_models()}
         if action == "settings_snapshot":
@@ -53,6 +55,19 @@ class CodexConfigure(ApiHandler):
             "util_model": saved_config["util_model"],
             "browser_model": saved_config["browser_model"],
             "settings": settings.convert_out(saved_settings),
+        }
+
+    async def _stop(self) -> dict:
+        proxy = get_proxy()
+        if proxy and proxy._running:
+            await proxy.stop()
+
+        restored_config, restored_settings = codex_provider.restore_previous_settings()
+
+        return {
+            "ok": True,
+            "message": "Codex proxy stopped and previous model settings restored",
+            "settings": settings.convert_out(restored_settings),
         }
 
     async def _disconnect(self) -> dict:

@@ -272,7 +272,8 @@ class CodexProxy:
         content_type = resp.headers.get("Content-Type", "")
         if "application/json" in content_type:
             try:
-                return web.json_response(await resp.json())
+                item = await resp.json()
+                return web.json_response(normalize_openai_response(item))
             except Exception:
                 return web.Response(text=await resp.text(), content_type="application/json")
 
@@ -296,21 +297,23 @@ class CodexProxy:
                     collected_text += event.get("delta", "")
 
         if final_response:
-            return web.json_response(final_response)
+            return web.json_response(normalize_openai_response(final_response))
         if collected_text:
             return web.json_response(
-                {
-                    "id": f"resp-{uuid.uuid4().hex[:24]}",
-                    "object": "response",
-                    "output": [
-                        {
-                            "type": "message",
-                            "role": "assistant",
-                            "content": [{"type": "output_text", "text": collected_text}],
-                        }
-                    ],
-                    "status": "completed",
-                }
+                normalize_openai_response(
+                    {
+                        "id": f"resp-{uuid.uuid4().hex[:24]}",
+                        "object": "response",
+                        "output": [
+                            {
+                                "type": "message",
+                                "role": "assistant",
+                                "content": [{"type": "output_text", "text": collected_text}],
+                            }
+                        ],
+                        "status": "completed",
+                    }
+                )
             )
         return web.json_response(
             {"error": {"message": "No response.completed event received", "type": "upstream_error"}},
@@ -423,6 +426,14 @@ class CodexProxy:
             {"error": {"message": "Only /v1/chat/completions, /v1/responses, and /v1/models are supported", "type": "not_supported"}},
             status=404,
         )
+
+
+def normalize_openai_response(resp: dict) -> dict:
+    if "created_at" not in resp:
+        resp["created_at"] = int(time.time())
+    resp.setdefault("status", "completed")
+    resp.setdefault("output", [])
+    return resp
 
 
 def _chat_to_responses(body: dict) -> dict:
