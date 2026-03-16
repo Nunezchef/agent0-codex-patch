@@ -92,3 +92,8 @@ grep -q "section-codex" /a0/webui/components/settings/external/external-settings
 - Runtime install pattern inspiration: [Nunezchef/Ea0](https://github.com/Nunezchef/Ea0)
 
 This repo adapts the Codex provider idea to stable Agent0 with an Ea0-style runtime installer so the UI can appear in External Services without rebuilding Docker.
+
+## v0.1.1 Features
+
+- **LiteLLM Compatibility Fix**: Automatically injects `created_at` timestamp into upstream payloads to fix proxy crashes in Agent Zero.
+- **Stop Proxy Button**: Cleanly stop the proxy and restore your previous local/cloud configurations on the fly without having to disconnect and lose your OAuth auth tokens.
